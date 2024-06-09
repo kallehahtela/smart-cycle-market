@@ -4,7 +4,9 @@ import { hash, compare, genSalt } from "bcrypt";
 interface UserDocument extends Document {
     name: string;
     email: string;
-    password: string
+    password: string;
+    verified: boolean,
+    tokens: string
 }
 
 interface Methods {
@@ -25,6 +27,11 @@ const userSchema = new Schema<UserDocument, {}, Methods>({
         type: String,
         required: true
     },
+    verified: {
+        type: Boolean,
+        default: false,
+    },
+    tokens: [String]
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
