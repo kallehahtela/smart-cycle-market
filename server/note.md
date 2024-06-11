@@ -33,3 +33,15 @@ authRouter.post("/reset-pass");
 5. If not valid send error otherwise generate access & refresh token.
 6. Store refresh token inside DB.
 7. Send both tokens to user.
+
+`/is-auth`
+1. Read authorized header
+2. See if we have the token.
+3. Send error if user not.
+4. Verify the token (we have to use jwt.verify).
+5. Take out the user id from token (we will have it as payload).
+6. Check if we have the user with this id.
+7. Send error if not
+8. Attach user profile inside req object.
+9. Call `next` function
+10. Handle error for expired tokens.

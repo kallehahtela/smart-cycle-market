@@ -29,7 +29,7 @@ export const createNewUser: RequestHandler = async (req, res) => {
     await AuthVerificationTokenModal.create({ owner: user._id, token });
 
     // Send verification link with token to register email.
-    const link = `http://localhost:8000/verify?id=${user._id}&${token}`;
+    const link = `http://localhost:8000/verify.html?id=${user._id}&token=${token}`;
 
     const transport = nodemailer.createTransport({
         host: "sandbox.smtp.mailtrap.io",
@@ -118,5 +118,11 @@ export const signIn: RequestHandler = async (req, res) => {
         },
         tokens: { refresh: refreshToken, access: accessToken }
     })
+};
+
+export const sendProfile: RequestHandler = async (req, res) => {
+    res.json({
+        profile: req.user,
+    });
 };
 
