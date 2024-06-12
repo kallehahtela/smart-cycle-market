@@ -1,10 +1,15 @@
 import { RequestHandler } from "express";
 import UserModel from "src/models/user";
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 import AuthVerificationTokenModal from "src/models/authVerificationToken";
 import { sendErrorRes } from "src/utils/helper";
 import jwt from "jsonwebtoken";
+import mail from "src/utils/mail";
+import PasswordResetTokenModal from "src/models/passwordResetToken";
+
+const VERIFICATION_LINK = process.env.VERIFICATION_LINK;
+const JWT_SECRET = process.env.JWT_SECRET!;
+const PASSWORD_RESET_LINK = process.env.PASSWORD_RESET_LINK;
 
 export const createNewUser: RequestHandler = async (req, res) => {
     // ok
@@ -29,23 +34,9 @@ export const createNewUser: RequestHandler = async (req, res) => {
     await AuthVerificationTokenModal.create({ owner: user._id, token });
 
     // Send verification link with token to register email.
-    const link = `http://localhost:8000/verify.html?id=${user._id}&token=${token}`;
+    const link = `${VERIFICATION_LINK}?id=${user._id}&token=${token}`;
 
-    const transport = nodemailer.createTransport({
-        host: "sandbox.smtp.mailtrap.io",
-        port: 2525,
-        auth: {
-            user: "15d2fae554ee2d",
-            pass: "58b97f9c8ddfa9"
-        }
-    });
-
-    // Send message back to check email inbox.
-    await transport.sendMail({
-        from: 'verification@myapp.com',
-        to: user.email,
-        html: `<h1>Please click on <a href='${link}'>this link</a> to verify your account</h1>`
-    })
+    await mail.sendVerification(user.email, link);
 
     res.json({ message: 'Please check your inbox.' });
 };
@@ -73,15 +64,31 @@ export const verifyEmail: RequestHandler = async (req, res) => {
     res.json({ message: 'Thanks for joining us, your email is now verified.' });
 };
 
-export const signIn: RequestHandler = async (req, res) => {
-    /* 1. Read incoming data like: email and password
-    2. Find the user the provided email.
-    3. Send error if user not found.
-    4. Check if the password is valid or not (because pass is in encrypted form).
-    5. If not valid send error otherwise generate access & refresh token.
-    6. Store refresh token inside DB.
-    7. Send both tokens to user. */
+export const generateVerificationLink: RequestHandler = async (req, res) => {
+    // 1. check if user is authenticated ot not
+    // 2. remove previous token if any
+    // 3. create/store new token
+    // 4. send link inside users email
+    // 5. send response back
+    const { id } = req.user;
+    const token = crypto.randomBytes(36).toString('hex');
 
+    const link = `${VERIFICATION_LINK}?id=${id}&token=${token}`;
+
+    // remove previous token if any
+    await AuthVerificationTokenModal.findOneAndDelete({ owner: id });
+
+    // create/store new token
+    await AuthVerificationTokenModal.create({ owner: id, token });
+
+    // send link inside users email
+    await mail.sendVerification(req.user.email, link);
+
+    // send response back
+    res.json({ message: 'Please check your inbox' });
+};
+
+export const signIn: RequestHandler = async (req, res) => {
     // Read incoming data like: email and password
     const { email, password } = req.body;
 
@@ -97,10 +104,10 @@ export const signIn: RequestHandler = async (req, res) => {
 
     const payload = { id: user._id };
 
-    const accessToken = jwt.sign(payload, 'secret', {
+    const accessToken = jwt.sign(payload, JWT_SECRET, {
         expiresIn: '15m'
     });
-    const refreshToken = jwt.sign(payload, 'secret');
+    const refreshToken = jwt.sign(payload, JWT_SECRET);
 
     if (!user.tokens) user.tokens = [refreshToken];
     else user.tokens.push(refreshToken);
@@ -126,3 +133,87 @@ export const sendProfile: RequestHandler = async (req, res) => {
     });
 };
 
+export const grantAccessToken: RequestHandler = async (req, res) => {
+    /* 
+    1. Read and verify refresh token
+  2. Find user with payload.id and refresh token
+  3. If the refresh token is valid and no user found, token is compromised.
+  4. Remove all the previous tokens and send error response.
+  5. If the token is valid and user found create new refresh and access token.
+  6. Remove previous token, update user and send new tokens.
+    */
+    // Read and verify refresh token
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) return sendErrorRes(res, 'Unauthorized request!', 403);
+
+    // Find user with payload.id and refresh token
+    const payload = jwt.verify(refreshToken, JWT_SECRET) as { id: string };
+    if (!payload.id) return sendErrorRes(res, 'Unauthorized request!', 401);
+
+    const user = await UserModel.findOne({
+        _id: payload.id,
+        tokens: refreshToken
+    });
+
+    if (!user) {
+        // user is compromised, remove all the previous tokens
+        await UserModel.findByIdAndUpdate(payload.id, { tokens: [] });
+        return sendErrorRes(res, 'Unauthorized request', 401);
+    }
+
+    const newAccessToken = jwt.sign({ id: user._id }, JWT_SECRET, {
+        expiresIn: '15m'
+    });
+    const newRefreshToken = jwt.sign({ id: user._id }, JWT_SECRET);
+
+    const filteredTokens = user.tokens.filter((t) => t !== refreshToken);
+    user.tokens = filteredTokens;
+    user.tokens.push(newRefreshToken);
+
+    await user.save();
+
+    res.json({
+        tokens: { refresh: newRefreshToken, access: newAccessToken },
+    });
+};
+
+export const signOut: RequestHandler = async (req, res) => {
+    // Remove the refresh token.
+
+    const { refreshToken } = req.body;
+    const user = await UserModel.findOne({ _id: req.user.id, tokens: refreshToken });
+    if (!user) return sendErrorRes(res, 'Unauthorized request, user not found!', 403);
+
+    const newTokens = user.tokens.filter((t) => t !== refreshToken);
+    user.tokens = newTokens;
+    await user.save();
+
+    res.send();
+};
+
+export const generateForgetPassLink: RequestHandler = async (req, res) => {
+    // Ask for user email
+    const { email } = req.body;
+    // Find user with the given email.
+    const user = await UserModel.findOne({ email })
+
+    // Send error if there is no user.
+    if (!user) return sendErrorRes(res, 'Account not found', 404);
+
+    // Else generate password reset token (first remove if there is any).
+
+    // Remove previous token
+    await PasswordResetTokenModal.findOneAndDelete({ owner: user._id });
+
+    // Create new token
+    const token = crypto.randomBytes(36).toString('hex');
+    await PasswordResetTokenModal.create({ owner: user._id, token });
+
+    // Send link to the user's email
+    const passwordResetLink = `${PASSWORD_RESET_LINK}?id=${user._id}&token=${token}`;
+    await mail.sendPasswordResetLink(user.email, passwordResetLink);
+
+    // send response back
+    res.json({ message: 'Please check your email.' });
+};
