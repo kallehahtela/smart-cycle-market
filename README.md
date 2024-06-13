@@ -1,1 +1,3 @@
-This is a full stack mobile appliaction
+THSI WILL BE A LARGE FULLSTACK PRACTICE MOBILE APP (TypeScript)
+ - BACKEND
+ - FRONTEND
