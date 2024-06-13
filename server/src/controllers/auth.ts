@@ -217,3 +217,53 @@ export const generateForgetPassLink: RequestHandler = async (req, res) => {
     // send response back
     res.json({ message: 'Please check your email.' });
 };
+
+export const grantValid: RequestHandler = async (req, res) => {
+    res.json({ valid: true });
+};
+
+export const updatePassword: RequestHandler = async (req, res) => {
+    // Read user id, reset pass token and password.
+    const { id, password } = req.body;
+
+    // Validate all these things.
+    const user = await UserModel.findById(id);
+
+    // If valid find user with the given id.
+    if (!user) return sendErrorRes(res, 'Unauthorized access!', 403);
+
+    // Check if user is using the same password.
+    const matched = await user.comparePassword(password);
+
+    // If there is no user or user is using the same password send error res.
+    if (!matched) return sendErrorRes(res, 'The new password must be different!', 422);
+
+    // Else update new password.
+    user.password = password;
+    await user.save();
+
+    // Remove password reset token.
+    await PasswordResetTokenModal.findOneAndDelete({ owner: user._id });
+
+    // Send confirmation email
+    await mail.sendPasswordUpdateMessage(user.email);
+
+    // Send response back
+    res.json({ message: 'Password resets successfully' });
+};
+
+export const updateProfile: RequestHandler = async (req, res) => {
+    // User must be logged in (authenticated).
+    const { name } = req.body;
+
+    // Name must be valid.
+    if (typeof name !== 'string' || name.trim().length < 3) {
+        return sendErrorRes(res, 'Invalid name!', 422);
+    }
+
+    // Find the user and update the name.
+    await UserModel.findByIdAndUpdate(req.user.id, { name });
+
+    // Send new profile back.
+    res.json({ profile: { ...req.user, name } });
+};

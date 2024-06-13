@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import { sendErrorRes } from "src/utils/helper";
 import jwt, { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 import UserModel from "src/models/user";
+import PasswordResetTokenModal from "src/models/passwordResetToken";
 
 interface UserProfile {
     id: string;
@@ -18,6 +19,8 @@ declare global {
     }
 };
 
+const JWT_SECRET = process.env.JWT_SECRET!;
+
 export const isAuth: RequestHandler = async (req, res, next) => {
 
     try {
@@ -29,7 +32,7 @@ export const isAuth: RequestHandler = async (req, res, next) => {
 
         // Take out the user id from token (we will have it as payload).
         const token = authToken.split('Bearer ')[1];
-        const payload = jwt.verify(token, 'secret') as { id: string };
+        const payload = jwt.verify(token, JWT_SECRET) as { id: string };
 
         // Check if we have the user with this id.
         const user = await UserModel.findById(payload.id);
@@ -57,4 +60,23 @@ export const isAuth: RequestHandler = async (req, res, next) => {
 
         next(error);
     }
+};
+
+
+export const isValidPassResetToken: RequestHandler = async (req, res, next) => {
+    // Read token and id
+    const { id, token } = req.body;
+
+    // Find token inside database with owner id.
+    const resetPassToken = await PasswordResetTokenModal.findOne({ owner: id });
+    // If there is no token send error
+    if (!resetPassToken) return sendErrorRes(res, 'Unauthorized request, invalid token!', 403);
+
+    // Else compare token with encrypted value.
+    const matched = await resetPassToken.compareToken(token);
+    // If not matched send error.
+    if (!matched) return sendErrorRes(res, 'Unauthorized request, invalid token!', 403);
+
+    // Else call next function.
+    next();
 };

@@ -15,6 +15,15 @@ authRouter.post("/forget-pass");
 authRouter.post("/verify-pass-reset-token");
 authRouter.post("/reset-pass");
 ```
+`/sign-up`
+1. Read incoming data like: name, email, password
+2. Validate if the data is ok or not.
+3. Send error if not.
+4. Check if we have account with same user.
+5. Send error if yew otherwise create new account and save user inside DB.
+6. Generate and Store verification token.
+7. Send verification link with token to register email.
+8. Send message back to check email inbox.
 
 `/verify`
 1. read incoming data like: id and token
@@ -71,3 +80,28 @@ authRouter.post("/reset-pass");
 5. Generate reset link (like we did for verification)
 6. Send link inside user's email.
 7. Send response back.
+
+`/verify-pass-reset-token`
+1. Read token and id
+2. Find token inside database with owner id.
+3. If there is no token send error.
+4. Else compare token with encrypted value.
+5. If not matched send error.
+6. Else call next function.
+
+`/reset-pass`
+1. Read user id, reset pass token and password.
+2. Validate all these things.
+3. If valid find user with the given id.
+4. Check if user is using the same password.
+5. If there is no user or user is using the same password send error res.
+6. Else update new password.
+7. Remove password reset token.
+8. Send confirmation email
+9. Send response back
+
+`/update-profile`
+1. User must be logged in (authenticated).
+2. Name must be valid.
+3. Find the user and update the name.
+4. Send new profile back.
