@@ -6,7 +6,8 @@ interface UserDocument extends Document {
     email: string;
     password: string;
     verified: boolean,
-    tokens: string
+    tokens: string[];
+    avatar?: { url: string, id: string };
 }
 
 interface Methods {
@@ -31,7 +32,12 @@ const userSchema = new Schema<UserDocument, {}, Methods>({
         type: Boolean,
         default: false,
     },
-    tokens: [String]
+    tokens: [String],
+    avatar: {
+        type: Object,
+        url: String,
+        id: String,
+    }
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

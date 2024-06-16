@@ -6,10 +6,23 @@ import { sendErrorRes } from "src/utils/helper";
 import jwt from "jsonwebtoken";
 import mail from "src/utils/mail";
 import PasswordResetTokenModal from "src/models/passwordResetToken";
+import { v2 as cloudinary } from 'cloudinary';
+import { isValidObjectId } from "mongoose";
+import { json } from "stream/consumers";
 
 const VERIFICATION_LINK = process.env.VERIFICATION_LINK;
 const JWT_SECRET = process.env.JWT_SECRET!;
 const PASSWORD_RESET_LINK = process.env.PASSWORD_RESET_LINK;
+const CLOUD_NAME = process.env.CLOUD_NAME!;
+const CLOUD_KEY = process.env.CLOUD_KEY!;
+const CLOUD_SECRET = process.env.CLOUD_SECRET!;
+
+cloudinary.config({
+    cloud_name: CLOUD_NAME,
+    api_key: CLOUD_KEY,
+    api_secret: CLOUD_SECRET,
+    secure: true,
+});
 
 export const createNewUser: RequestHandler = async (req, res) => {
     // ok
@@ -266,4 +279,69 @@ export const updateProfile: RequestHandler = async (req, res) => {
 
     // Send new profile back.
     res.json({ profile: { ...req.user, name } });
+};
+
+export const updateAvatar: RequestHandler = async (req, res) => {
+    /* 
+1. User must be logged in.
+2. Read incoming file.
+3. File must be image.
+4. Check if user already have avatar or not.
+5. If yes remove the old avatar.
+6. Upload new avatar and update user.
+7. Send response back.
+    */
+
+    const { avatar } = req.files;
+    if (Array.isArray(avatar)) {
+        return sendErrorRes(res, 'Multiple files are not allowed!', 422);
+    }
+
+    // File must be image.
+    if (!avatar.mimetype?.startsWith('image')) {
+        return sendErrorRes(res, 'Invalid image file!', 422);
+    }
+
+    const user = await UserModel.findById(req.user.id)
+    if (!user) {
+        return sendErrorRes(res, 'User not found!', 404);
+    }
+
+    // Check if user already have avatar or not.
+    if (user.avatar?.id) {
+        // If yes remove the old avatar.
+        await cloudinary.uploader.destroy(user.avatar.id);
+    }
+
+    // Upload avatar file
+    const { secure_url: url, public_id: id } = await cloudinary.uploader.upload(
+        avatar.filepath,
+        {
+            width: 300,
+            height: 300,
+            crop: 'thumb',
+            gravity: 'face',
+        }
+    );
+    user.avatar = { url, id };
+    await user.save();
+
+    // update user.
+
+
+    res.json({ profile: { ...req.user, avatar: user.avatar.url } });
+};
+
+export const sendPublicProfile: RequestHandler = async (req, res) => {
+    const profileId = req.params.id;
+    if (!isValidObjectId(profileId)) {
+        return sendErrorRes(res, 'Invalid profile id!', 422);
+    }
+
+    const user = await UserModel.findById(profileId);
+    if (!user) {
+        return sendErrorRes(res, 'Profile not found!', 404);
+    }
+
+    res.json({ profile: { id: user._id, name: user.name, avatar: user.avatar?.url }, });
 };
