@@ -5,6 +5,7 @@ import express, { RequestHandler } from 'express';
 import authRouter from 'routes/auth';
 import formidable from 'formidable';
 import path from 'path';
+import productRouter from 'routes/product';
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: false })); // Read the data from the form
 
 // API ROUTES
 app.use('/auth', authRouter);
+app.use('/product', productRouter);
 
 // This is how you can uplaod files
 app.post('/upload-file', async (req, res) => {
