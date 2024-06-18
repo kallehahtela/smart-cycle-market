@@ -156,8 +156,20 @@ productRouter.get('/listings');
   1. User must be authenticated.
   2. User can upload images as well.
   3. Validate incoming data.
-  4. Update the normal properties.
+  4. Update normal properties (if the product is made by same user).
   5. Upload and update images (restrict image qty).
-  6. And send teh response back.
+  6. And send the response back.
 
-- `/:id (delete signle product)` 
+- `/:id (delete single product)` 
+  1. User must be authenticated.
+  2. Validate the product id.
+  3. Remove if it is made by same user.
+  4. Remove images as well.
+  5. And send the response back.
+
+- `/image/:productId:imageId (delete ony image of the product)`
+  1. User must be authenticated.
+  2. Validate the product id.
+  3. Remove the image from db (if it is made by same user).
+  4. Remove from cloud as well.
+  5. And send response back.
