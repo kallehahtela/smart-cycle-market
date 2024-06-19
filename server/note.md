@@ -173,3 +173,23 @@ productRouter.get('/listings');
   3. Remove the image from db (if it is made by same user).
   4. Remove from cloud as well.
   5. And send response back.
+
+- `/:id (get product details)`
+  1. User must be authenticated (optional).
+  2. Validate he product id.
+  3. Find Product by the id.
+  4. Format data.
+  5. And send the response back.
+
+- `/by-catgory/:category`
+  1. User must be authenticated (optional).
+  2. Validate the category.
+  3. Find products by category (apply pagination if needed).
+  4. Format data.
+  5. And send the response back.
+
+- `/latest (multiple products sorted with created date)`
+  1. User must be authenticated (optional).
+  2. Find all the products with sorted date (apply limit/pagination if needed).
+  3. Format data.
+  4. And send the response back.  

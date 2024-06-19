@@ -1,0 +1,202 @@
+[
+  {
+    "owner": {
+      "$oid": "6669d5a949b35b39ca9a14e7"
+    },
+    "name": "Wireless Earbuds",
+    "description": "The best wireless earbuds with amazing sound quality.",
+    "price": 221,
+    "purchasingDate": {
+      "$date": "2024-06-15T19:06:01.333320Z"
+    },
+    "category": "Fashion",
+    "images": [],
+    "thumbnail": "",
+    "createdAt": {
+      "$date": "2024-06-10T19:06:01.333320Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-19T19:06:01.333320Z"
+    }
+  },
+  {
+    "owner": {
+      "$oid": "6669d5a949b35b39ca9a14e7"
+    },
+    "name": "Smart Watch",
+    "description": "A smart watch with multiple fitness tracking features.",
+    "price": 625,
+    "purchasingDate": {
+      "$date": "2023-10-23T19:06:01.333320Z"
+    },
+    "category": "Tools & Home Improvement",
+    "images": [],
+    "thumbnail": "",
+    "createdAt": {
+      "$date": "2024-06-18T19:06:01.333320Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-15T19:06:01.333320Z"
+    }
+  },
+  {
+    "owner": {
+      "$oid": "6669d5a949b35b39ca9a14e7"
+    },
+    "name": "Yoga Mat",
+    "description": "A durable yoga mat for all your exercise needs.",
+    "price": 1534,
+    "purchasingDate": {
+      "$date": "2024-01-28T19:06:01.333320Z"
+    },
+    "category": "Toys & Games",
+    "images": [],
+    "thumbnail": "",
+    "createdAt": {
+      "$date": "2024-06-13T19:06:01.333320Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-11T19:06:01.333320Z"
+    }
+  },
+  {
+    "owner": {
+      "$oid": "6669d5a949b35b39ca9a14e7"
+    },
+    "name": "Blender",
+    "description": "A high-speed blender perfect for smoothies and soups.",
+    "price": 141,
+    "purchasingDate": {
+      "$date": "2023-11-20T19:06:01.333320Z"
+    },
+    "category": "Fashion",
+    "images": [],
+    "thumbnail": "",
+    "createdAt": {
+      "$date": "2024-06-12T19:06:01.333320Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-18T19:06:01.333320Z"
+    }
+  },
+  {
+    "owner": {
+      "$oid": "6669d5a949b35b39ca9a14e7"
+    },
+    "name": "Mystery Novel",
+    "description": "An engaging mystery novel that keeps you on the edge of your seat.",
+    "price": 452,
+    "purchasingDate": {
+      "$date": "2024-03-02T19:06:01.333320Z"
+    },
+    "category": "Fitness",
+    "images": [],
+    "thumbnail": "",
+    "createdAt": {
+      "$date": "2024-06-09T19:06:01.333320Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-12T19:06:01.333320Z"
+    }
+  },
+  {
+    "owner": {
+      "$oid": "6669d5a949b35b39ca9a14e7"
+    },
+    "name": "Board Game",
+    "description": "A fun board game for family and friends.",
+    "price": 174,
+    "purchasingDate": {
+      "$date": "2023-12-12T19:06:01.333320Z"
+    },
+    "category": "Sports & Outdoors",
+    "images": [],
+    "thumbnail": "",
+    "createdAt": {
+      "$date": "2024-06-16T19:06:01.333320Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-18T19:06:01.333320Z"
+    }
+  },
+  {
+    "owner": {
+      "$oid": "6669d5a949b35b39ca9a14e7"
+    },
+    "name": "Face Serum",
+    "description": "A hydrating face serum for glowing skin.",
+    "price": 1113,
+    "purchasingDate": {
+      "$date": "2024-02-01T19:06:01.333320Z"
+    },
+    "category": "Books",
+    "images": [],
+    "thumbnail": "",
+    "createdAt": {
+      "$date": "2024-06-12T19:06:01.333320Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-14T19:06:01.333320Z"
+    }
+  },
+  {
+    "owner": {
+      "$oid": "6669d5a949b35b39ca9a14e7"
+    },
+    "name": "Camping Tent",
+    "description": "A spacious camping tent for outdoor adventures.",
+    "price": 1185,
+    "purchasingDate": {
+      "$date": "2023-11-10T19:06:01.333320Z"
+    },
+    "category": "Home & Kitchen",
+    "images": [],
+    "thumbnail": "",
+    "createdAt": {
+      "$date": "2024-06-12T19:06:01.333320Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-09T19:06:01.333320Z"
+    }
+  },
+  {
+    "owner": {
+      "$oid": "6669d5a949b35b39ca9a14e7"
+    },
+    "name": "Car Vacuum",
+    "description": "A powerful car vacuum to keep your vehicle clean.",
+    "price": 901,
+    "purchasingDate": {
+      "$date": "2024-02-08T19:06:01.333320Z"
+    },
+    "category": "Beauty & Personal Care",
+    "images": [],
+    "thumbnail": "",
+    "createdAt": {
+      "$date": "2024-06-15T19:06:01.333320Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-19T19:06:01.333320Z"
+    }
+  },
+  {
+    "owner": {
+      "$oid": "6669d5a949b35b39ca9a14e7"
+    },
+    "name": "Power Drill",
+    "description": "A reliable power drill for home improvement projects.",
+    "price": 288,
+    "purchasingDate": {
+      "$date": "2024-06-09T19:06:01.333320Z"
+    },
+    "category": "Fashion",
+    "images": [],
+    "thumbnail": "",
+    "createdAt": {
+      "$date": "2024-06-11T19:06:01.333320Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-17T19:06:01.333320Z"
+    }
+  }
+]
