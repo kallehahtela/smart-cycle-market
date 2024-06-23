@@ -138,7 +138,7 @@ productRouter.post('/list');
 productRouter.patch('/:id');
 productRouter.delete('/:id');
 productRouter.delete('/image/:productId/:imageId');
-productRouter.get('/id');
+productRouter.get('/detail/id');
 productRouter.get('/by-category/:category');
 productRouter.get('/latest');
 productRouter.get('/listings');
@@ -174,7 +174,7 @@ productRouter.get('/listings');
   4. Remove from cloud as well.
   5. And send response back.
 
-- `/:id (get product details)`
+- `/detail/:id (get product details)`
   1. User must be authenticated (optional).
   2. Validate he product id.
   3. Find Product by the id.
@@ -192,4 +192,10 @@ productRouter.get('/listings');
   1. User must be authenticated (optional).
   2. Find all the products with sorted date (apply limit/pagination if needed).
   3. Format data.
-  4. And send the response back.  
+  4. And send the response back. 
+
+- `/listings`
+  1. User must be authenticated
+  2. Find all the products created by this user (apply pagination if needed).
+  3. Format Data.
+  4. And send the response back.

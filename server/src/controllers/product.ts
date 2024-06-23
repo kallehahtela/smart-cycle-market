@@ -6,7 +6,6 @@ import ProductModel from "src/models/product";
 import { UserDocument } from "src/models/user";
 import categories from "src/utils/categories";
 import { sendErrorRes } from "src/utils/helper";
-import { json } from "stream/consumers";
 
 const uploadImage = (filePath: string): Promise<UploadApiResponse> => {
     return cloudUploader.upload(filePath, {
@@ -298,12 +297,16 @@ export const getProductsByCategory: RequestHandler = async (req, res) => {
     */
     // Validate the category.
     const { category } = req.params;
+    const { pageNo = '1', limit = '10' } = req.query as { pageNo: string, limit: string };
     if (!categories.includes(category)) {
         return sendErrorRes(res, 'Invalid category!', 422);
     }
 
     // Find products by category (apply pagination if needed).
-    const products = await ProductModel.find({ category });
+    const products = await ProductModel.find({ category })
+        .sort('-createdAt')
+        .skip((+pageNo - 1) * +limit)
+        .limit(+limit);
     const listings = products.map(p => {
         return {
             id: p._id,
@@ -311,6 +314,67 @@ export const getProductsByCategory: RequestHandler = async (req, res) => {
             thumbnail: p.thumbnail,
             category: p.category,
             price: p.price,
+        };
+    });
+
+    res.json({ products: listings });
+};
+
+export const getLatestProducts: RequestHandler = async (req, res) => {
+    /*
+  1. User must be authenticated (optional).
+  2. Find all the products with sorted date (apply limit/pagination if needed).
+  3. Format data.
+  4. And send the response back. 
+    */
+    const products = await ProductModel.find()
+        .sort('-createdAt')
+        .limit(10)
+    const listings = products.map(p => {
+        return {
+            id: p._id,
+            name: p.name,
+            thumbnail: p.thumbnail,
+            category: p.category,
+            price: p.price,
+        };
+    });
+
+    res.json({ products: listings });
+};
+
+export const getListings: RequestHandler = async (req, res) => {
+    /*
+  1. User must be authenticated
+  2. Find all the products created by this user (apply pagination if needed).
+  3. Format Data.
+  4. And send the response back.
+    */
+
+    const { pageNo = '1', limit = '10' } = req.query as {
+        pageNo: string;
+        limit: string;
+    };
+
+    const products = await ProductModel.find({ owner: req.user.id })
+        .sort('-createdAt')
+        .skip((+pageNo - 1) * +limit)
+        .limit(+limit)
+    const listings = products.map((p) => {
+        return {
+            id: p._id,
+            name: p.name,
+            thumbnail: p.thumbnail,
+            category: p.category,
+            price: p.price,
+            image: p.images?.map(i => i.url),
+            date: p.purchasingDate,
+            description: p.description,
+            seller: {
+                id: req.user.id,
+                name: req.user.name,
+                avatar: req.user.avatar
+            }
         };
     });
 

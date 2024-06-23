@@ -5,10 +5,11 @@ import UserModel from "src/models/user";
 import PasswordResetTokenModal from "src/models/passwordResetToken";
 
 interface UserProfile {
-    id: string;
+    id: string,
     name: string;
     email: string;
     verified: boolean;
+    avatar?: string;
 };
 
 declare global {
@@ -22,7 +23,6 @@ declare global {
 const JWT_SECRET = process.env.JWT_SECRET!;
 
 export const isAuth: RequestHandler = async (req, res, next) => {
-
     try {
         // Read authorized header
         const authToken = req.headers.authorization;
@@ -41,10 +41,11 @@ export const isAuth: RequestHandler = async (req, res, next) => {
 
         // Attach user profile inside req object.
         req.user = {
-            id: user._id,
+            id: user.id,
             name: user.name,
             email: user.email,
             verified: user.verified,
+            avatar: user.avatar?.url,
         };
 
         next()
