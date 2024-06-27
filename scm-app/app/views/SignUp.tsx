@@ -12,16 +12,19 @@ import { AuthStackParamList } from 'app/navigator/AuthNavigator';
 import * as yup from 'yup';
 import axios from 'axios';
 import { newUserSchema, yupValidate } from '@utils/validator';
-
-
+import { runAxiosAsync } from 'app/api/runAxiosAsync';
+import { showMessage } from 'react-native-flash-message';
 
 interface Props {}
 
 const SignUp: FC<Props> = () => {
   const [userInfo, setUserInfo] = useState({
     name: '', 
-    email: '', password: ''
+    email: '', 
+    password: ''
   });
+
+  const [busy, setBusy] = useState(false);
   const { navigate } = useNavigation<NavigationProp<AuthStackParamList>>(); 
 
   const handleChange = (name: string) => (text: string) => {
@@ -29,27 +32,18 @@ const SignUp: FC<Props> = () => {
   };
 
   const handleSubmit = async () => {
-    try {
-      const { values, error } = await yupValidate(newUserSchema, userInfo);
-      if (error) {
-        console.log(error);
-      }
+    const { values, error } = await yupValidate(newUserSchema, userInfo);
+    
+    if (error) return showMessage({message: error, type: 'danger'});
+    
+    setBusy(true);
+    const res = await runAxiosAsync<{message: string}>(axios.post(
+      'http://192.168.1.75:8000/auth/sign-up', values)
+    );
 
-      if (values) {
-        const {data} = await axios.post('http://localhost:8000/auth/sign-up', values);
-        console.log(data);
-      }
-
-      
-    } catch (error) {
-      if (error instanceof axios.AxiosError) {
-        const response = error.response;
-        if (response){
-          console.log('Api Error: ', response.data.message);
-        }
-      }
-
-      console.log('Any error occured: ', (error as any).message);
+    if (res?.message) {
+      showMessage({ message: res.message, type: 'success' });
+      setBusy(false);
     }
   };
 
@@ -65,7 +59,7 @@ const SignUp: FC<Props> = () => {
             <FormInput placeholder='Email' value={email} keyboardType='email-address' autoCapitalize='none' onChangeText={handleChange('email')} />
             <FormInput placeholder='Password' value={password} secureTextEntry={true} onChangeText={handleChange('password')} />
 
-            <AppButton active={false} title='Sign Up' onPress={handleSubmit}/>
+            <AppButton active={!busy} title='Sign Up' onPress={handleSubmit}/>
 
             <FormDivider />
             <FormNavigator 

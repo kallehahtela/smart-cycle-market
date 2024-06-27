@@ -11,8 +11,8 @@ interface Props {
 const AppButton: FC<Props> = ({title, active, onPress}) => {
   return (
     <Pressable 
-        onPress={onPress} 
-        style={[styles.button, active ? styles.btnDeactive : styles.btnActive]}
+        onPress={active ? onPress : null} 
+        style={[styles.button, active ? styles.btnActive : styles.btnDeActive]}
     >
         <Text style={styles.title}>{title}</Text>
     </Pressable>
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     btnActive: {
         backgroundColor: colors.primary,
     },
-    btnDeactive: {
+    btnDeActive: {
         backgroundColor: colors.deActive,
     },
     title: {

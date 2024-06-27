@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsnd --respawn -r tsconfig-paths/register --transpile-only ./src/index.ts",
     "build": "tsc && tsc-alias",
-    "start": "node ./dist"
+    "start": "node --no-deprecation ./dist"
   },
   "author": "Kalle Hahtela",
   "license": "ISC",
