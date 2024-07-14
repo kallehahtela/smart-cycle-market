@@ -1,6 +1,5 @@
 import { View, StyleSheet } from 'react-native'
 import React, { FC, useState } from 'react'
-import colors from '@utils/colors';
 import WelcomeHeader from '@ui/WelcomeHeader';
 import FormInput from '@ui/FormInput';
 import AppButton from '@ui/AppButton';
@@ -26,6 +25,7 @@ const SignUp: FC<Props> = () => {
 
   const [busy, setBusy] = useState(false);
   const { navigate } = useNavigation<NavigationProp<AuthStackParamList>>(); 
+  const { email, name, password } = userInfo;
 
   const handleChange = (name: string) => (text: string) => {
     setUserInfo({...userInfo, [name]: text});
@@ -38,7 +38,7 @@ const SignUp: FC<Props> = () => {
     
     setBusy(true);
     const res = await runAxiosAsync<{message: string}>(axios.post(
-      'http://192.168.1.75:8000/auth/sign-up', values)
+      'http://192.168.68.53:8000/auth/sign-up', values)
     );
 
     if (res?.message) {
@@ -46,8 +46,6 @@ const SignUp: FC<Props> = () => {
       setBusy(false);
     }
   };
-
-  const { email, name, password } = userInfo;
 
   return (
     <CustomKeyAvoidingView>

@@ -1,4 +1,3 @@
-import { StyleSheet } from 'react-native'
 import { FC } from 'react'
 import SignIn from '@views/SignIn';
 import SignUp from '@views/SignUp';
@@ -24,7 +23,5 @@ const AuthNavigator: FC<Props> = (props) => {
     </Stack.Navigator>
   );
 };
-
-
 
 export default AuthNavigator
