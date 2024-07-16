@@ -12,10 +12,11 @@ import { signInSchema, yupValidate } from '@utils/validator';
 import { showMessage } from 'react-native-flash-message';
 import { runAxiosAsync } from 'app/api/runAxiosAsync';
 import axios from 'axios';
+import client from 'app/api/client';
 
 interface Props {}
 
-interface SignInRes {
+export interface SignInRes {
   profile: {
     id: string;
     email: string;
@@ -44,7 +45,7 @@ const SignIn: FC<Props> = (props) => {
     
     setBusy(true);
     const res = await runAxiosAsync<SignInRes>(
-      axios.post('http://192.168.68.53:8000/auth/sign-in', values)
+      client.post('/auth/sign-in', values)
     );
 
     if (res) {

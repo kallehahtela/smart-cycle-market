@@ -13,6 +13,8 @@ import axios from 'axios';
 import { newUserSchema, yupValidate } from '@utils/validator';
 import { runAxiosAsync } from 'app/api/runAxiosAsync';
 import { showMessage } from 'react-native-flash-message';
+import client from 'app/api/client';
+import { SignInRes } from './SignIn';
 
 interface Props {}
 
@@ -37,14 +39,18 @@ const SignUp: FC<Props> = () => {
     if (error) return showMessage({message: error, type: 'danger'});
     
     setBusy(true);
-    const res = await runAxiosAsync<{message: string}>(axios.post(
-      'http://192.168.68.53:8000/auth/sign-up', values)
+    const res = await runAxiosAsync<{message: string}>(
+      client.post('/auth/sign-up', values)
     );
 
     if (res?.message) {
       showMessage({ message: res.message, type: 'success' });
-      setBusy(false);
+      const signInRes = await runAxiosAsync<SignInRes>(
+        client.post('/auth/sign-in', values)
+      );
+      console.log(signInRes);
     }
+    setBusy(false);
   };
 
   return (
