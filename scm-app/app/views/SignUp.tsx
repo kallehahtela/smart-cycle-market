@@ -8,8 +8,6 @@ import FormNavigator from '@ui/FormNavigator';
 import CustomKeyAvoidingView from '@ui/CustomKeyAvoidingView';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { AuthStackParamList } from 'app/navigator/AuthNavigator';
-import * as yup from 'yup';
-import axios from 'axios';
 import { newUserSchema, yupValidate } from '@utils/validator';
 import { runAxiosAsync } from 'app/api/runAxiosAsync';
 import { showMessage } from 'react-native-flash-message';

@@ -13,6 +13,8 @@ import { showMessage } from 'react-native-flash-message';
 import { runAxiosAsync } from 'app/api/runAxiosAsync';
 import axios from 'axios';
 import client from 'app/api/client';
+import { useDispatch } from 'react-redux';
+import { updateAuthState } from 'app/store/auth';
 
 interface Props {}
 
@@ -37,6 +39,7 @@ const SignIn: FC<Props> = (props) => {
     password: ''
   });
   const [busy, setBusy] = useState(false);
+  const dispatch = useDispatch();
 
   const handleSubmit = async () => {
     const { values, error } = await yupValidate(signInSchema, userInfo);
@@ -49,8 +52,8 @@ const SignIn: FC<Props> = (props) => {
     );
 
     if (res) {
-      // store teh tokens
-      console.log(res);
+      // store the tokens
+      dispatch(updateAuthState({profile: res.profile, pending: false}))
     }
     setBusy(false);
   };
