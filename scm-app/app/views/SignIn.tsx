@@ -15,22 +15,10 @@ import axios from 'axios';
 import client from 'app/api/client';
 import { useDispatch } from 'react-redux';
 import { updateAuthState } from 'app/store/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import useAuth from 'app/hooks/useAuth';
 
 interface Props {}
-
-export interface SignInRes {
-  profile: {
-    id: string;
-    email: string;
-    name: string;
-    verified: boolean;
-    avatar?: string;
-  };
-  tokens: {
-    refresh: string;
-    access: string;
-  };
-}
 
 const SignIn: FC<Props> = (props) => {
   const { navigate } = useNavigation<NavigationProp<AuthStackParamList>>();
@@ -38,24 +26,17 @@ const SignIn: FC<Props> = (props) => {
     email: '', 
     password: ''
   });
-  const [busy, setBusy] = useState(false);
-  const dispatch = useDispatch();
+
+  const { signIn} = useAuth();
 
   const handleSubmit = async () => {
     const { values, error } = await yupValidate(signInSchema, userInfo);
     
     if (error) return showMessage({ message: error, type: 'danger' });
     
-    setBusy(true);
-    const res = await runAxiosAsync<SignInRes>(
-      client.post('/auth/sign-in', values)
-    );
-
-    if (res) {
-      // store the tokens
-      dispatch(updateAuthState({profile: res.profile, pending: false}))
+    if (values) {
+      signIn(values);
     }
-    setBusy(false);
   };
 
   const handleChange = (name: string) => (text: string) => {
@@ -73,7 +54,7 @@ const SignIn: FC<Props> = (props) => {
             <FormInput placeholder='Email' keyboardType='email-address' autoCapitalize='none' value={email} onChangeText={handleChange('email')}/>
             <FormInput placeholder='Password' secureTextEntry={true} value={password} onChangeText={handleChange('password')}/>
 
-            <AppButton active={!busy} title='Sign In' onPress={handleSubmit}/>
+            <AppButton active={true} title='Sign In' onPress={handleSubmit}/>
 
             <FormDivider />
             <FormNavigator 
