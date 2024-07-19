@@ -1,15 +1,12 @@
 import { FC } from 'react'
-import SignIn from '@views/SignIn';
-import SignUp from '@views/SignUp';
-import ForgetPassword from '@views/ForgetPassword';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Home from '@views/Home';
 
-export type AuthStackParamList = {
+export type AppStackParamList = {
     Home: undefined;
 }
 
-const Stack = createNativeStackNavigator<AuthStackParamList>();
+const Stack = createNativeStackNavigator<AppStackParamList>();
 
 interface Props {}
 
