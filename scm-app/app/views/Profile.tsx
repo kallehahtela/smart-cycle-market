@@ -6,7 +6,7 @@ const Profile = () => {
     <View>
       <Text>Profile</Text>
     </View>
-  )
+  ) 
 }
 
 export default Profile
