@@ -1,4 +1,4 @@
-import { View, StyleSheet, Pressable, Text, Platform } from 'react-native'
+import { View, StyleSheet, Pressable, Text, Platform, FlatList, Image } from 'react-native'
 import React, { FC, useState } from 'react'
 import FormInput from '@ui/FormInput';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -10,48 +10,129 @@ import CategoryOption from '@ui/CategoryOption';
 import { AntDesign } from '@expo/vector-icons';
 import AppButton from '@ui/AppButton';
 import CustomKeyAvoidingView from '@ui/CustomKeyAvoidingView';
+import * as ImagePicker from 'expo-image-picker';
+import { showMessage } from 'react-native-flash-message';
+import HorizontalImageList from '@components/HorizontalImageList';
 
 interface Props {}
 
+const defaultInfo =  {
+    name: '',
+    description: '',
+    category: '',
+    price: '',
+    purchasingDate: new Date(),
+};
+const imageOptions = [{value: 'Remove Image', id: 'remove'}];
+
 const NewListing: FC<Props> = (props) => {
 
+    const [productInfo, setProductInfo] = useState({...defaultInfo});
     const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [showImageOptions, setShowImageOptions] = useState(false);
+    const [images, setImages] = useState<string[]>([]);
+    const [selectedImage, setSelectedImage] = useState('');
+
+    const { category, description, name, price, purchasingDate } = productInfo;
+
+    const handleChange = (name: string) => (text: string) => {
+        setProductInfo({...productInfo, [name]: text });
+      };
+
+      const handleSumbit = () => {
+        console.log(productInfo);
+      };
+
+      const handleOnImageSelection = async () => {
+        try {
+            const { assets} = await ImagePicker.launchImageLibraryAsync({
+                allowsEditing: false,
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                quality: 0.3,
+                allowsMultipleSelection: true,
+            })
+
+            if (!assets) return;
+
+            const imageUris = assets.map(({uri}) => uri)
+            setImages([...images, ...imageUris]);
+
+        } catch (error) {
+            showMessage({ message: (error as any).message, type: 'danger'});
+        }
+      }
+ 
     return (
         <CustomKeyAvoidingView>
             <View style={styles.container}>
-                <Pressable style={styles.fileSelector}>
-                    <View style={styles.iconContainer}>
-                        <FontAwesome5 name='images' size={24} color='black'/>
-                    </View>
-                    <Text style={styles.btnTitle}>Add Images</Text>
-                </Pressable>
-                <FormInput placeholder='Product name'/>
+                <View style={styles.imageContainer}>
+                    <Pressable onPress={handleOnImageSelection} style={styles.fileSelector}>
+                        <View style={styles.iconContainer}>
+                            <FontAwesome5 name='images' size={24} color='black'/>
+                        </View>
+                        <Text style={styles.btnTitle}>Add Images</Text>
+                    </Pressable>
 
-                <FormInput placeholder='Price'/>
+                    <HorizontalImageList 
+                        images={images} 
+                        onLongPress={(img) => {
+                            setSelectedImage(img);
+                            setShowImageOptions(true);
+                        }}
+                    />
 
-                <DatePicker title='Purchasing Date: ' value={new Date()} onChange={() => {}} />
+                    {/*<FlatList data={images} renderItem={({item}) => {
+                        return <Image style={styles.selectedImages} source={{uri: item}}/>
+                    }}
+                    keyExtractor={(item) => item}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    />*/}
+                </View>
 
+                <FormInput 
+                    value={name} 
+                    placeholder='Product name' 
+                    onChangeText={handleChange('name')} 
+                />
+
+                <FormInput 
+                    value={price} 
+                    placeholder='Price' 
+                    onChangeText={handleChange('price')} 
+                    keyboardType='numeric'
+                />
+
+                <DatePicker 
+                    title='Purchasing Date:' 
+                    value={purchasingDate} 
+                    onChange={(purchasingDate) => setProductInfo({...productInfo, purchasingDate})} 
+                />
                 <Pressable style={styles.categorySelector} onPress={() => setShowCategoryModal(true)}>
-                    <Text style={styles.categoryTitle}>Category</Text>
+                    <Text style={styles.categoryTitle}>{category || 'Category'}</Text>
                     <AntDesign name='caretdown' color={colors.primary}/>
                 </Pressable>
 
-                <FormInput placeholder='Description'multiline numberOfLines={4}/>
+                <FormInput value={description} placeholder='Description'multiline numberOfLines={4} onChangeText={handleChange('description')} />
 
-                <AppButton active title='List Product'/>
+                <AppButton active title='List Product' onPress={handleSumbit}/>
 
+                {/* Image Options */}
                 <OptionModal
-                    visible={showCategoryModal} 
-                    onRequestClose={setShowCategoryModal} 
-                    options={categories}
+                    visible={showImageOptions} 
+                    onRequestClose={setShowImageOptions} 
+                    options={imageOptions}
                     renderItem={(item) => {
                         return (
-                            <CategoryOption {...item}/>
+                            <Text style={styles.imageOptions}>{item.value}</Text>
                     );
                     }}  
-                    onPress={(item) => {
-                        console.log(item);
-                    }}  
+                    onPress={(option) => {
+                        if (option.id === 'remove') {
+                            const newImages = images.filter((img) => img !== selectedImage)
+                            setImages([...newImages]);
+                        }
+                    }}
                 />
             </View>
         </CustomKeyAvoidingView>
@@ -74,6 +155,9 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         alignSelf: 'flex-start',
     },
+    imageContainer: {
+        flexDirection: 'row',
+    },
     iconContainer: {
         alignItems: 'center',
         justifyContent: 'center',
@@ -83,6 +167,12 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: colors.primary,
         borderRadius: 7,
+    },
+    selectedImages: {
+        width: 70,
+        height: 70,
+        borderRadius: 7,
+        marginLeft: 5,
     },
     categorySelector: {
         flexDirection: 'row',
@@ -97,6 +187,12 @@ const styles = StyleSheet.create({
     },
     categoryTitle: {
         color: colors.primary,
+    },
+    imageOptions: {
+        fontWeight: '600',
+        fontSize: 18,
+        color: colors.primary,
+        padding: 10
     },
 });
 

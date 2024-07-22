@@ -26,5 +26,13 @@
     "web": {
       "favicon": "./assets/favicon.png"
     }
-  }
+  },
+  "plugins": [
+    [
+      "expo-image-picker",
+      {
+        "photosPermission": "The app accesses your photos and lets you you add them to products."
+      }
+    ]
+  ]
 }
