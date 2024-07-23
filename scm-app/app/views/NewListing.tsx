@@ -13,6 +13,11 @@ import CustomKeyAvoidingView from '@ui/CustomKeyAvoidingView';
 import * as ImagePicker from 'expo-image-picker';
 import { showMessage } from 'react-native-flash-message';
 import HorizontalImageList from '@components/HorizontalImageList';
+import { newProductSchema, yupValidate } from '@utils/validator';
+import mime from 'mime'
+import useClient from 'app/hooks/useClient';
+import { runAxiosAsync } from 'app/api/runAxiosAsync';
+import LoadingSpinner from '@ui/LoadingSpinner';
 
 interface Props {}
 
@@ -28,10 +33,12 @@ const imageOptions = [{value: 'Remove Image', id: 'remove'}];
 const NewListing: FC<Props> = (props) => {
 
     const [productInfo, setProductInfo] = useState({...defaultInfo});
+    const [busy, setBusy] = useState(false);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [showImageOptions, setShowImageOptions] = useState(false);
     const [images, setImages] = useState<string[]>([]);
     const [selectedImage, setSelectedImage] = useState('');
+    const { authClient } = useClient();
 
     const { category, description, name, price, purchasingDate } = productInfo;
 
@@ -39,8 +46,55 @@ const NewListing: FC<Props> = (props) => {
         setProductInfo({...productInfo, [name]: text });
       };
 
-      const handleSumbit = () => {
-        console.log(productInfo);
+      const handleSubmit = async () => {
+        const {error} = await yupValidate(newProductSchema, productInfo);
+        if (error) return showMessage({message: error, type: 'danger'});
+
+
+        setBusy(true);
+        // submit this form
+        const formData = new FormData();
+
+        type productInfoKeys = keyof typeof productInfo
+
+        for (let key in productInfo) {
+            const value = productInfo[key as productInfoKeys];
+
+            if (value instanceof Date) {
+                formData.append(key,value.toISOString());
+            } else {
+                formData.append(key,value);
+            }
+
+            // appending images
+            const newImages = images.map((img, index) => ({
+                name: 'image_'+ index,
+                type: mime.getType(img),
+                uri: img
+            }))
+
+            for (let img of newImages) {
+                formData.append('images', img as any);
+            }
+
+            const res = await runAxiosAsync<{message: string}>(
+                authClient.post('/product/list', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }))
+            setBusy(false);
+
+            if (res) {
+                showMessage({ message: res.message, type: 'success'});
+                setProductInfo({...defaultInfo});
+                setImages([]);
+            }
+
+            console.log(res);
+        };
+
+        //formData.append('key', productInfo.name);
       };
 
       const handleOnImageSelection = async () => {
@@ -115,9 +169,9 @@ const NewListing: FC<Props> = (props) => {
 
                 <FormInput value={description} placeholder='Description'multiline numberOfLines={4} onChangeText={handleChange('description')} />
 
-                <AppButton active title='List Product' onPress={handleSumbit}/>
+                <AppButton active title='List Product' onPress={handleSubmit}/>
 
-                {/* Image Options */}
+                { /* Image Options */ }
                 <OptionModal
                     visible={showImageOptions} 
                     onRequestClose={setShowImageOptions} 
@@ -125,16 +179,30 @@ const NewListing: FC<Props> = (props) => {
                     renderItem={(item) => {
                         return (
                             <Text style={styles.imageOptions}>{item.value}</Text>
-                    );
-                    }}  
+                        );
+                    }}
                     onPress={(option) => {
                         if (option.id === 'remove') {
-                            const newImages = images.filter((img) => img !== selectedImage)
-                            setImages([...newImages]);
+                            const newImages = images.filter(img => img !== selectedImage);
+                            setImages([...newImages])
                         }
                     }}
                 />
+                <OptionModal
+                    visible={showCategoryModal} 
+                    onRequestClose={setShowCategoryModal} 
+                    options={categories}
+                    renderItem={(item) => {
+                        return (
+                            <CategoryOption {...item} />
+                        );
+                    }}
+                    onPress={(item) => {
+                        setProductInfo({...productInfo, category: item.name})
+                    }}
+                />
             </View>
+            <LoadingSpinner visible={busy}/>
         </CustomKeyAvoidingView>
   )
 };

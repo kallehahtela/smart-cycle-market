@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Image, Pressable, StyleSheet, StyleProp, ViewStyle } from 'react-native'
+import { FlatList, Image, Pressable, StyleSheet, StyleProp, ViewStyle } from 'react-native'
 import React, { FC } from 'react'
 
 interface Props {

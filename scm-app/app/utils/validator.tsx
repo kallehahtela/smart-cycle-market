@@ -42,3 +42,19 @@ export const newUserSchema = yup.object({
 export const signInSchema = yup.object({
     ...nameAndEmailValidation,
 });
+
+export const newProductSchema = yup.object({
+    images: yup.string().required('Images are missing!'),
+    name: yup.string().required('Products name is missing!'),
+    description: yup.string().required('Product description is missing!'),
+    category: yup.string().required('Category is missing!'),
+    price: yup
+        .string()
+        .transform((value) => {
+        if (isNaN(+value)) return '';
+
+        return value;
+    })
+    .required('Product price is missing!'),
+    purchasingDate: yup.date().required('Purchasing date is missing!'),
+});

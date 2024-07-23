@@ -1,5 +1,5 @@
 import { View, Text, Modal, StyleSheet, ScrollView, Pressable } from 'react-native'
-import React, { FC } from 'react'
+import React from 'react'
 import colors from '@utils/colors';
 
 interface Props<T> {
@@ -13,35 +13,35 @@ interface Props<T> {
 const OptionModal = <T extends unknown>({ visible, onRequestClose, options, renderItem, onPress }: Props<T>) => {
     const handleClose = () => onRequestClose(!visible);
 
-  return (
-    <Modal
-        transparent
-        visible={visible} 
-        onRequestClose={handleClose} 
-    >
-      <Pressable 
-        onPress={handleClose}
-        style={styles.container}>
-        <View style={styles.innerContainer}>
-            <ScrollView>
-                {options.map((item, index) => {
-                    return (
-                    <Pressable 
-                        key={index} 
-                        onPress={() => {
-                            onPress(item);
-                            handleClose()
-                        }}
-                    >
-                        {renderItem(item)}
-                    </Pressable>
-                    );
-                })}
-            </ScrollView>
-        </View>
-      </Pressable>
-    </Modal>
-  );
+    return (
+        <Modal
+            transparent
+            visible={visible} 
+            onRequestClose={handleClose} 
+        >
+        <Pressable 
+            onPress={handleClose}
+            style={styles.container}>
+            <View style={styles.innerContainer}>
+                <ScrollView>
+                    {options.map((item, index) => {
+                        return (
+                        <Pressable 
+                            key={index} 
+                            onPress={() => {
+                                onPress(item);
+                                handleClose()
+                            }}
+                        >
+                            {renderItem(item)}
+                        </Pressable>
+                        );
+                    })}
+                </ScrollView>
+            </View>
+        </Pressable>
+        </Modal>
+    );
 };
 
 const styles = StyleSheet.create({
