@@ -1,12 +1,19 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import React, { FC } from 'react'
+import AvatarView from './AvatarView';
 
-const Profile = () => {
+interface Props {}
+
+const Profile: FC<Props> = (props) => {
   return (
-    <View>
-      <Text>Profile</Text>
-    </View>
-  ) 
-}
+    <ScrollView contentContainerStyle={styles.container}>
+      <AvatarView size={80}/>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {}
+});
 
 export default Profile

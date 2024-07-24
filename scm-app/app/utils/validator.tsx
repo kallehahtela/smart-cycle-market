@@ -44,7 +44,6 @@ export const signInSchema = yup.object({
 });
 
 export const newProductSchema = yup.object({
-    images: yup.string().required('Images are missing!'),
     name: yup.string().required('Products name is missing!'),
     description: yup.string().required('Product description is missing!'),
     category: yup.string().required('Category is missing!'),

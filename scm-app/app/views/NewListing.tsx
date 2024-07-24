@@ -55,7 +55,7 @@ const NewListing: FC<Props> = (props) => {
         // submit this form
         const formData = new FormData();
 
-        type productInfoKeys = keyof typeof productInfo
+        type productInfoKeys = keyof typeof productInfo;
 
         for (let key in productInfo) {
             const value = productInfo[key as productInfoKeys];
@@ -65,6 +65,7 @@ const NewListing: FC<Props> = (props) => {
             } else {
                 formData.append(key,value);
             }
+        }
 
             // appending images
             const newImages = images.map((img, index) => ({
@@ -92,9 +93,6 @@ const NewListing: FC<Props> = (props) => {
             }
 
             console.log(res);
-        };
-
-        //formData.append('key', productInfo.name);
       };
 
       const handleOnImageSelection = async () => {
