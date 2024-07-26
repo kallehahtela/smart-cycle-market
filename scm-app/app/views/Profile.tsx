@@ -6,12 +6,23 @@ import colors from '@utils/colors';
 import size from '@utils/size';
 import FormDivider from '@ui/FormDivider';
 import ProfileOptionListItem from '@components/ProfileOptionListItem';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { ProfileNavigatorParamList } from 'app/navigator/ProfileNavigator';
 
 interface Props {}
 
 const Profile: FC<Props> = (props) => {
-  const { authState } = useAuth();
+  const { navigate } = useNavigation<NavigationProp<ProfileNavigatorParamList>>()
+  const { authState, signOut } = useAuth();
   const { profile } = authState
+
+  const onMessagePress = () => {
+    navigate('Chats');
+  };
+
+  const onListingPress = () => {
+    navigate('Listings');
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -27,9 +38,23 @@ const Profile: FC<Props> = (props) => {
 
       <FormDivider />
 
-      <ProfileOptionListItem active style={styles.marginBottom} antIconName='message1' title='Messages' />
-      <ProfileOptionListItem style={styles.marginBottom} antIconName='appstore-o' title='Your Listings' />
-      <ProfileOptionListItem antIconName='logout' title='Log out' />
+      <ProfileOptionListItem 
+        style={styles.marginBottom} 
+        antIconName='message1' 
+        title='Messages' 
+        onPress={onMessagePress}
+      />
+      <ProfileOptionListItem 
+        style={styles.marginBottom} 
+        antIconName='appstore-o' 
+        title='Your Listings'
+        onPress={onListingPress}
+      />
+      <ProfileOptionListItem 
+        antIconName='logout' 
+        title='Log out'
+        onPress={signOut}
+      />
     </ScrollView>
   );
 };

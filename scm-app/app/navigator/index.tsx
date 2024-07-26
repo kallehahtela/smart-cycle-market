@@ -3,7 +3,7 @@ import colors from '@utils/colors';
 import { FC, useEffect } from 'react';
 import AuthNavigator from './AuthNavigator';
 import { useDispatch } from 'react-redux';
-import { Profile, updateAuthState } from 'app/store/auth';
+import { updateAuthState } from 'app/store/auth';
 import client from 'app/api/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { runAxiosAsync } from 'app/api/runAxiosAsync';
@@ -21,6 +21,16 @@ const MyTheme = {
   },
 };
 
+type ProfileRes = {
+  profile: {
+    id: string;
+    name: string
+    email: string;
+    verified: boolean;
+    avatar?: string;
+  };
+};
+
 interface Props {}
 
 const Navigator: FC<Props> = (props) => {
@@ -30,17 +40,20 @@ const Navigator: FC<Props> = (props) => {
   const {authClient} = useClient();
 
   const fetchAuthState = async () => {
+
     const token = await asyncStorage.get(Keys.AUTH_TOKEN);
     if (token) {
       dispatch(updateAuthState({ pending: true, profile: null }));
-      const res = await runAxiosAsync<{profile: Profile}>(authClient.get('/auth/profile', {
+      const res = await runAxiosAsync<ProfileRes>(
+        authClient.get('/auth/profile', {
         headers: {
           Authorization: 'Bearer ' + token,
         },
-      }));
+      })
+      );
 
       if (res) {
-        dispatch(updateAuthState({ pending: false, profile: res.profile }));
+        dispatch(updateAuthState({ pending: false, profile:{ ...res.profile, accessToken: token} }));
       } else {
         dispatch(updateAuthState({ pending: false, profile: null }));
       }
