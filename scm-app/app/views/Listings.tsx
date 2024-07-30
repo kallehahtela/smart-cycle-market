@@ -19,10 +19,13 @@ type ListingResponse = {
 const Listings: FC<Props> = (props) => {
   const {navigate } = useNavigation<NavigationProp<ProfileNavigatorParamList>>();
   const [listings, setListings] = useState<Product[]>([]);
+  const [fetching, setFetching] = useState(false);
   const { authClient } = useClient();
 
   const fetchListings = async () => {
+    setFetching(true);
     const res = await runAxiosAsync<ListingResponse>(authClient.get('/product/listings'));
+    setFetching(false);
     if (res) {
       setListings(res.products);
     }
@@ -37,6 +40,8 @@ const Listings: FC<Props> = (props) => {
       <AppHeader backButton={<BackButton />} />
       <View style={styles.container}>
         <FlatList 
+          refreshing={fetching}
+          onRefresh={fetchListings}
           data={listings} 
           contentContainerStyle={styles.flatList}
           keyExtractor={(item) => item.id} 
