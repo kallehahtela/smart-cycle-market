@@ -6,9 +6,10 @@ import useClient from 'app/hooks/useClient'
 import { runAxiosAsync } from 'app/api/runAxiosAsync'
 import size from '@utils/size'
 import ProductImage from '@ui/ProductImage'
-import { Product } from './SingleProduct'
 import { NavigationProp, useNavigation } from '@react-navigation/native'
 import { ProfileNavigatorParamList } from 'app/navigator/ProfileNavigator'
+import { getListings, Product, updateListings } from 'app/store/listings'
+import { useDispatch, useSelector } from 'react-redux'
 
 interface Props {}
 
@@ -18,16 +19,18 @@ type ListingResponse = {
 
 const Listings: FC<Props> = (props) => {
   const {navigate } = useNavigation<NavigationProp<ProfileNavigatorParamList>>();
-  const [listings, setListings] = useState<Product[]>([]);
+  //const [listings, setListings] = useState<Product[]>([]);
   const [fetching, setFetching] = useState(false);
   const { authClient } = useClient();
+  const dispatch = useDispatch();
+  const listings = useSelector(getListings);
 
   const fetchListings = async () => {
     setFetching(true);
     const res = await runAxiosAsync<ListingResponse>(authClient.get('/product/listings'));
     setFetching(false);
     if (res) {
-      setListings(res.products);
+      dispatch(updateListings(res.products));
     }
   };
 

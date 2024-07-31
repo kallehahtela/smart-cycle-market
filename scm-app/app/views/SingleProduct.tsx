@@ -9,29 +9,15 @@ import useAuth from 'app/hooks/useAuth';
 import colors from '@utils/colors';
 import OptionButton from '@ui/OptionButton';
 import OptionModal from '@components/OptionModal';
-import { Feather } from '@expo/vector-icons';
+import { Feather, AntDesign } from '@expo/vector-icons';
 import useClient from 'app/hooks/useClient';
 import { runAxiosAsync } from 'app/api/runAxiosAsync';
 import { showMessage } from 'react-native-flash-message';
 import LoadingSpinner from '@ui/LoadingSpinner';
+import { useDispatch } from 'react-redux';
+import { deleteItem } from 'app/store/listings';
 
 type Props = NativeStackScreenProps<ProfileNavigatorParamList, 'SingleProduct'>
-
-export type Product = {
-    id: string;
-    name: string;
-    thumbnail?: string;
-    category: string;
-    price: number;
-    image?: string[];
-    date: string;
-    description: string
-    seller: {
-      id: string;
-      name: string;
-      avatar?: string;
-    };
-};
 
 const menuOptions = [
     {
@@ -50,7 +36,7 @@ const SingleProduct: FC<Props> = ({ route, navigation }) => {
     const {authState} = useAuth();
     const { authClient } = useClient();
     const { product } = route.params;
-
+    const dispatch = useDispatch();
 
     const isAdmin = authState.profile?.id === product?.seller.id;
 
@@ -63,6 +49,7 @@ const SingleProduct: FC<Props> = ({ route, navigation }) => {
         const res = await runAxiosAsync<{message: string}>(authClient.delete('/product/' + id));
         setBusy(false);
         if (res?.message) {
+            dispatch(deleteItem(id));
             showMessage({message: res.message, type: 'success'});
             navigation.navigate('Listings');
         }
@@ -87,6 +74,9 @@ const SingleProduct: FC<Props> = ({ route, navigation }) => {
             />
             <View style={styles.container}>
                 {product ? <ProductDetail product={product} /> : <></>}
+                <Pressable onPress={() => navigation.navigate('ChatWindow')} style={styles.messageBtn}>
+                    <AntDesign name='message1' size={20} color={colors.white} />
+                </Pressable>
             </View>
 
             <OptionModal 
@@ -102,6 +92,9 @@ const SingleProduct: FC<Props> = ({ route, navigation }) => {
                 onPress={(option) => {
                     if (option.name === 'Delete') {
                         onDeletePress()
+                    }
+                    if (option.name === 'Edit') {
+                        navigation.navigate('EditProduct', {product: product!});
                     }
                 }}
             />
@@ -123,6 +116,17 @@ const styles = StyleSheet.create({
         paddingLeft: 5,
         color: colors.primary
     },
+    messageBtn: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: colors.active,
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+    }
 });
 
 export default SingleProduct

@@ -18,6 +18,8 @@ import mime from 'mime'
 import useClient from 'app/hooks/useClient';
 import { runAxiosAsync } from 'app/api/runAxiosAsync';
 import LoadingSpinner from '@ui/LoadingSpinner';
+import OptionsSelector from './OptionsSelector';
+import { selectImages } from '@utils/helper';
 
 interface Props {}
 
@@ -44,9 +46,9 @@ const NewListing: FC<Props> = (props) => {
 
     const handleChange = (name: string) => (text: string) => {
         setProductInfo({...productInfo, [name]: text });
-      };
+        };
 
-      const handleSubmit = async () => {
+        const handleSubmit = async () => {
         const {error} = await yupValidate(newProductSchema, productInfo);
         if (error) return showMessage({message: error, type: 'danger'});
 
@@ -93,117 +95,103 @@ const NewListing: FC<Props> = (props) => {
             }
 
             console.log(res);
-      };
+        };
 
-      const handleOnImageSelection = async () => {
-        try {
-            const { assets} = await ImagePicker.launchImageLibraryAsync({
-                allowsEditing: false,
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                quality: 0.3,
-                allowsMultipleSelection: true,
-            })
-
-            if (!assets) return;
-
-            const imageUris = assets.map(({uri}) => uri)
-            setImages([...images, ...imageUris]);
-
-        } catch (error) {
-            showMessage({ message: (error as any).message, type: 'danger'});
-        }
-      }
+        const handleOnImageSelection = async () => {
+        
+            const newImages = await selectImages();
+            setImages([...images, ...newImages]);
+        };
+    
  
-    return (
-        <CustomKeyAvoidingView>
-            <View style={styles.container}>
-                <View style={styles.imageContainer}>
-                    <Pressable onPress={handleOnImageSelection} style={styles.fileSelector}>
-                        <View style={styles.iconContainer}>
-                            <FontAwesome5 name='images' size={24} color='black'/>
-                        </View>
-                        <Text style={styles.btnTitle}>Add Images</Text>
-                    </Pressable>
+        return (
+            <CustomKeyAvoidingView>
+                <View style={styles.container}>
+                    <View style={styles.imageContainer}>
+                        <Pressable onPress={handleOnImageSelection} style={styles.fileSelector}>
+                            <View style={styles.iconContainer}>
+                                <FontAwesome5 name='images' size={24} color='black'/>
+                            </View>
+                            <Text style={styles.btnTitle}>Add Images</Text>
+                        </Pressable>
 
-                    <HorizontalImageList 
-                        images={images} 
-                        onLongPress={(img) => {
-                            setSelectedImage(img);
-                            setShowImageOptions(true);
+                        <HorizontalImageList 
+                            images={images} 
+                            onLongPress={(img) => {
+                                setSelectedImage(img);
+                                setShowImageOptions(true);
+                            }}
+                        />
+
+                        {/*<FlatList data={images} renderItem={({item}) => {
+                            return <Image style={styles.selectedImages} source={{uri: item}}/>
                         }}
+                        keyExtractor={(item) => item}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        />*/}
+                    </View>
+
+                    <FormInput 
+                        value={name} 
+                        placeholder='Product name' 
+                        onChangeText={handleChange('name')} 
                     />
 
-                    {/*<FlatList data={images} renderItem={({item}) => {
-                        return <Image style={styles.selectedImages} source={{uri: item}}/>
-                    }}
-                    keyExtractor={(item) => item}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    />*/}
+                    <FormInput 
+                        value={price} 
+                        placeholder='Price' 
+                        onChangeText={handleChange('price')} 
+                        keyboardType='numeric'
+                    />
+
+                    <DatePicker 
+                        title='Purchasing Date:' 
+                        value={purchasingDate} 
+                        onChange={(purchasingDate) => setProductInfo({...productInfo, purchasingDate})} 
+                    />
+
+                    <OptionsSelector title={category || 'Category'} onPress={() => setShowCategoryModal(true)} />
+
+                    <FormInput value={description} placeholder='Description'multiline numberOfLines={4} onChangeText={handleChange('description')} />
+
+                    <AppButton active title='List Product' onPress={handleSubmit}/>
+
+                    { /* Image Options */ }
+                    <OptionModal
+                        visible={showImageOptions} 
+                        onRequestClose={setShowImageOptions} 
+                        options={imageOptions}
+                        renderItem={(item) => {
+                            return (
+                                <Text style={styles.imageOptions}>{item.value}</Text>
+                            );
+                        }}
+                        onPress={(option) => {
+                            if (option.id === 'remove') {
+                                const newImages = images.filter(img => img !== selectedImage);
+                                setImages([...newImages])
+                            }
+                        }}
+                    />
+                    <OptionModal
+                        visible={showCategoryModal} 
+                        onRequestClose={setShowCategoryModal} 
+                        options={categories}
+                        renderItem={(item) => {
+                            return (
+                                <CategoryOption {...item} />
+                            );
+                        }}
+                        onPress={(item) => {
+                            setProductInfo({...productInfo, category: item.name})
+                        }}
+                    />
                 </View>
-
-                <FormInput 
-                    value={name} 
-                    placeholder='Product name' 
-                    onChangeText={handleChange('name')} 
-                />
-
-                <FormInput 
-                    value={price} 
-                    placeholder='Price' 
-                    onChangeText={handleChange('price')} 
-                    keyboardType='numeric'
-                />
-
-                <DatePicker 
-                    title='Purchasing Date:' 
-                    value={purchasingDate} 
-                    onChange={(purchasingDate) => setProductInfo({...productInfo, purchasingDate})} 
-                />
-                <Pressable style={styles.categorySelector} onPress={() => setShowCategoryModal(true)}>
-                    <Text style={styles.categoryTitle}>{category || 'Category'}</Text>
-                    <AntDesign name='caretdown' color={colors.primary}/>
-                </Pressable>
-
-                <FormInput value={description} placeholder='Description'multiline numberOfLines={4} onChangeText={handleChange('description')} />
-
-                <AppButton active title='List Product' onPress={handleSubmit}/>
-
-                { /* Image Options */ }
-                <OptionModal
-                    visible={showImageOptions} 
-                    onRequestClose={setShowImageOptions} 
-                    options={imageOptions}
-                    renderItem={(item) => {
-                        return (
-                            <Text style={styles.imageOptions}>{item.value}</Text>
-                        );
-                    }}
-                    onPress={(option) => {
-                        if (option.id === 'remove') {
-                            const newImages = images.filter(img => img !== selectedImage);
-                            setImages([...newImages])
-                        }
-                    }}
-                />
-                <OptionModal
-                    visible={showCategoryModal} 
-                    onRequestClose={setShowCategoryModal} 
-                    options={categories}
-                    renderItem={(item) => {
-                        return (
-                            <CategoryOption {...item} />
-                        );
-                    }}
-                    onPress={(item) => {
-                        setProductInfo({...productInfo, category: item.name})
-                    }}
-                />
-            </View>
-            <LoadingSpinner visible={busy}/>
-        </CustomKeyAvoidingView>
-  )
-};
+                <LoadingSpinner visible={busy}/>
+            </CustomKeyAvoidingView>
+    )
+    };
 
 const styles = StyleSheet.create({
     container: {
@@ -240,20 +228,8 @@ const styles = StyleSheet.create({
         borderRadius: 7,
         marginLeft: 5,
     },
-    categorySelector: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-        marginBottom: 15,
-        padding: 8,
-        borderWidth: 1,
-        borderColor: colors.deActive,
-        borderRadius: 5,
-    },
-    categoryTitle: {
-        color: colors.primary,
-    },
+
+   
     imageOptions: {
         fontWeight: '600',
         fontSize: 18,

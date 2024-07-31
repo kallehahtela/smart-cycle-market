@@ -1,8 +1,10 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import authReducer from './auth';
+import listingReducer from './listings';
 
 const reducers = combineReducers({
     auth: authReducer,
+    listings: listingReducer,
 });
 
 const store = configureStore({ reducer: reducers });
