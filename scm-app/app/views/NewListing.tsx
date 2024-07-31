@@ -20,6 +20,7 @@ import { runAxiosAsync } from 'app/api/runAxiosAsync';
 import LoadingSpinner from '@ui/LoadingSpinner';
 import OptionsSelector from './OptionsSelector';
 import { selectImages } from '@utils/helper';
+import CategoryOptions from '@components/CategoryOptions';
 
 interface Props {}
 
@@ -151,7 +152,12 @@ const NewListing: FC<Props> = (props) => {
                         onChange={(purchasingDate) => setProductInfo({...productInfo, purchasingDate})} 
                     />
 
-                    <OptionsSelector title={category || 'Category'} onPress={() => setShowCategoryModal(true)} />
+                    <CategoryOptions 
+                        onSelect={handleChange('category')} 
+                        title={category || 'Category'} 
+                    />
+
+                    {/*<OptionsSelector title={category || 'Category'} onPress={() => setShowCategoryModal(true)} />*/}
 
                     <FormInput value={description} placeholder='Description'multiline numberOfLines={4} onChangeText={handleChange('description')} />
 
@@ -174,7 +180,7 @@ const NewListing: FC<Props> = (props) => {
                             }
                         }}
                     />
-                    <OptionModal
+                    {/*<OptionModal
                         visible={showCategoryModal} 
                         onRequestClose={setShowCategoryModal} 
                         options={categories}
@@ -186,7 +192,7 @@ const NewListing: FC<Props> = (props) => {
                         onPress={(item) => {
                             setProductInfo({...productInfo, category: item.name})
                         }}
-                    />
+                    />*/}
                 </View>
                 <LoadingSpinner visible={busy}/>
             </CustomKeyAvoidingView>

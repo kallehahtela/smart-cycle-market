@@ -16,8 +16,21 @@ import useClient from 'app/hooks/useClient';
 import { runAxiosAsync } from 'app/api/runAxiosAsync';
 import { string } from 'yup';
 import { selectImages } from '@utils/helper';
+import CategoryOptions from '@components/CategoryOptions';
+import AppButton from '@ui/AppButton';
+import { newProductSchema, yupValidate } from '@utils/validator';
+import { showMessage } from 'react-native-flash-message';
+import mime from 'mime';
 
 type Props = NativeStackScreenProps<ProfileNavigatorParamList, 'EditProduct'>
+
+type ProductInfo = {
+        name: string;
+        description: string;
+        category: string;
+        price: string;
+        purchasingDate: Date;
+};
 
 const imageOptions = [
     { value: 'Use as Thumbnail', id: 'thumb' },
@@ -42,6 +55,10 @@ const EditProduct: FC<Props> = ({route}) => {
     const removeSelectedImage = async () => {
         const notLocalImage = selectedImage.startsWith('https://res.cloudinary.com');
 
+        const images = product.image
+        const newImages = images?.filter(img => img !== selectedImage);
+        setProduct({...product, image: newImages});
+
         if (notLocalImage) {
             const splittedItems = selectedImage.split('/');
             const imageId = splittedItems[splittedItems.length - 1].split('.')[0];
@@ -54,6 +71,51 @@ const EditProduct: FC<Props> = ({route}) => {
         const oldImages = product.image || [];
         const images = oldImages.concat(newImages)
         setProduct({...product, image: [...images]})
+    };
+
+    const makeSelectedImageAsThumbnail = () => {
+        if (selectedImage.startsWith('https://res.cloudinary.com')) {
+            setProduct({...product, thumbnail: selectedImage});
+        }
+    };
+
+    const handleOnSubmit = async () => {
+        const dataToUpdate: ProductInfo = {
+            name: product.name,
+            category: product.category, 
+            description: product.description, 
+            price: product.price, 
+            purchasingDate: product.date
+        };
+
+        const {error} = await yupValidate(newProductSchema, dataToUpdate);
+        if (error) {
+            return showMessage({message: error, type: 'danger'});
+        }
+
+        const formData = new FormData();
+        type productInfoKeys = keyof typeof dataToUpdate;
+        for (let key in dataToUpdate) {
+            const value = dataToUpdate[key as productInfoKeys];
+            if ( value instanceof Date) {
+                formData.append(key, value.toISOString());
+            } else {
+                formData.append(key, value);
+            }
+        }
+
+        const images: {uri: string, type: string, name: string}[] = [];
+
+        product.image?.forEach((img, index) => {
+            if (!img.startsWith('https://res.cloudinary.com'))
+            images.push({
+                uri: img,
+                name: 'image_' + index,
+                type: mime.getType(img) ||'image/jpg',
+            } as any);
+        });
+
+        // send our new data to api
     };
 
     return (
@@ -85,13 +147,20 @@ const EditProduct: FC<Props> = ({route}) => {
                     onChange={(date) => setProduct({...product, date})}
                 />
 
-                <OptionsSelector title={product.category || 'Category'} />
+                <CategoryOptions 
+                    onSelect={(category) => setProduct({...product, category})}
+                    title={product.category || 'Category'}
+                />
+
+
+                {/*<OptionsSelector title={product.category || 'Category'} />*/}
 
                 <FormInput 
                     placeholder='Description' 
                     value={product.description}
                     onChangeText={(description) => setProduct({...product, description})} 
                 />
+                <AppButton active title='Update Product' onPress={handleOnSubmit} />
             </ScrollView>
         </View>
 
@@ -104,7 +173,7 @@ const EditProduct: FC<Props> = ({route}) => {
             }}
             onPress={({id}) => {
                 if (id === 'thumb') {
-
+                    makeSelectedImageAsThumbnail();
                 }
                 
                 if (id === 'remove') {
