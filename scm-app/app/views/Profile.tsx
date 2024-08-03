@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
 import React, { FC, useState } from 'react'
 import AvatarView from './AvatarView';
 import useAuth from 'app/hooks/useAuth';
@@ -8,13 +8,25 @@ import FormDivider from '@ui/FormDivider';
 import ProfileOptionListItem from '@components/ProfileOptionListItem';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { ProfileNavigatorParamList } from 'app/navigator/ProfileNavigator';
+import { AntDesign } from '@expo/vector-icons';
+import { runAxiosAsync } from 'app/api/runAxiosAsync';
+import useClient from 'app/hooks/useClient';
+import { ProfileRes } from 'app/navigator';
+import { useDispatch } from 'react-redux';
+import { updateAuthState } from 'app/store/auth';
+import { showMessage } from 'react-native-flash-message';
 
 interface Props {}
 
 const Profile: FC<Props> = (props) => {
   const { navigate } = useNavigation<NavigationProp<ProfileNavigatorParamList>>()
   const { authState, signOut } = useAuth();
-  const { profile } = authState
+  const { profile } = authState;
+  const [userName, setUserName] = useState(profile?.name || '');
+  const { authClient } = useClient();
+  const dispatch = useDispatch();
+
+  const isNameChanged = profile?.name !== userName && userName.trim().length >= 3;
 
   const onMessagePress = () => {
     navigate('Chats');
@@ -24,14 +36,45 @@ const Profile: FC<Props> = (props) => {
     navigate('Listings');
   };
 
+  const updateProfile = async () => {
+    const res = await runAxiosAsync<{profile: ProfileRes}>(authClient.patch('/auth/update-profile', { name: userName }))
+    if (res) {
+      showMessage({ message: 'Name updated successfully.', type: 'success' });
+      dispatch(
+        updateAuthState({
+          pending: false,
+          profile: { ...profile!, ...res.profile },
+      })
+    );
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.profileContainer}>
         <AvatarView uri={authState.profile?.avatar} size={80} />
 
-
         <View style={styles.profileInfo}>
-          <Text style={styles.name}>{profile?.name}</Text>
+          <View style={styles.nameContainer}>
+            <TextInput 
+              value={userName}
+              onChangeText={(text) => setUserName(text)}
+              style={styles.name}
+            />
+
+            {isNameChanged && (
+              <Pressable
+                onPress={updateProfile}
+              >
+                <AntDesign 
+                  name='check' 
+                  size={24} 
+                  color={colors.primary}
+                />
+              </Pressable>
+            )}
+
+          </View>
           <Text style={styles.email}>{profile?.email}</Text>
         </View>
       </View>
@@ -82,7 +125,12 @@ const styles = StyleSheet.create({
   },
   marginBottom: {
     marginBottom: 15,
-  }
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
 });
 
 export default Profile

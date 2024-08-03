@@ -10,17 +10,17 @@ import HorizontalImageList from '@components/HorizontalImageList';
 import { FontAwesome5 } from '@expo/vector-icons';
 import FormInput from '@ui/FormInput';
 import DatePicker from '@ui/DatePicker';
-import OptionsSelector from './OptionsSelector';
 import OptionModal from '@components/OptionModal';
 import useClient from 'app/hooks/useClient';
 import { runAxiosAsync } from 'app/api/runAxiosAsync';
-import { string } from 'yup';
 import { selectImages } from '@utils/helper';
 import CategoryOptions from '@components/CategoryOptions';
 import AppButton from '@ui/AppButton';
 import { newProductSchema, yupValidate } from '@utils/validator';
 import { showMessage } from 'react-native-flash-message';
 import mime from 'mime';
+import LoadingSpinner from '@ui/LoadingSpinner';
+import deepEqual from 'deep-equal';
 
 type Props = NativeStackScreenProps<ProfileNavigatorParamList, 'EditProduct'>
 
@@ -38,14 +38,20 @@ const imageOptions = [
 ];
 
 const EditProduct: FC<Props> = ({route}) => {
-    const [selectedImage, setSelectedImage] = useState('');
-    const [showImageOptions, setShowImageOptions] = useState(false);
-    const [product, setProduct] = useState({
+
+    const productInfoToUpdate = {
         ...route.params.product,
         price: route.params.product.price.toString(),
         date: new Date(route.params.product.date),
-    });
+    }
+
+    const [selectedImage, setSelectedImage] = useState('');
+    const [showImageOptions, setShowImageOptions] = useState(false);
+    const [busy, setBusy] = useState(false);
+    const [product, setProduct] = useState({...productInfoToUpdate});
     const { authClient } = useClient();
+
+    const isFormChanged = deepEqual(productInfoToUpdate, product);
 
     const onLongPress = (image: string) => {
         setSelectedImage(image);
@@ -85,7 +91,7 @@ const EditProduct: FC<Props> = ({route}) => {
             category: product.category, 
             description: product.description, 
             price: product.price, 
-            purchasingDate: product.date
+            purchasingDate: product.date,
         };
 
         const {error} = await yupValidate(newProductSchema, dataToUpdate);
@@ -94,7 +100,13 @@ const EditProduct: FC<Props> = ({route}) => {
         }
 
         const formData = new FormData();
+
+        if (product.thumbnail) {
+            formData.append('thumbnail', product.thumbnail);
+        }
+
         type productInfoKeys = keyof typeof dataToUpdate;
+
         for (let key in dataToUpdate) {
             const value = dataToUpdate[key as productInfoKeys];
             if ( value instanceof Date) {
@@ -107,15 +119,28 @@ const EditProduct: FC<Props> = ({route}) => {
         const images: {uri: string, type: string, name: string}[] = [];
 
         product.image?.forEach((img, index) => {
-            if (!img.startsWith('https://res.cloudinary.com'))
-            images.push({
-                uri: img,
-                name: 'image_' + index,
-                type: mime.getType(img) ||'image/jpg',
-            } as any);
+            if (!img.startsWith('https://res.cloudinary.com')) {
+                formData.append('images', {
+                    uri: img,
+                    name: 'image_' + index,
+                    type: mime.getType(img) || 'image/jpg',
+                } as any);
+            }
         });
 
         // send our new data to api
+        setBusy(true); 
+        const res = await runAxiosAsync<{ message: string }>(
+            authClient.patch('/product/' + product.id, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            })
+        );
+        setBusy(false);
+        if (res) {
+            showMessage({ message: res.message, type: 'success' });
+        }
     };
 
     return (
@@ -160,7 +185,9 @@ const EditProduct: FC<Props> = ({route}) => {
                     value={product.description}
                     onChangeText={(description) => setProduct({...product, description})} 
                 />
-                <AppButton active title='Update Product' onPress={handleOnSubmit} />
+                {!isFormChanged && (
+                    <AppButton title='Update Product' onPress={handleOnSubmit} />
+                )}
             </ScrollView>
         </View>
 
@@ -181,6 +208,7 @@ const EditProduct: FC<Props> = ({route}) => {
                 }
             }}
         />
+        <LoadingSpinner visible={busy} />
         </>
     );
 };
@@ -211,4 +239,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default EditProduct
+export default EditProduct;
