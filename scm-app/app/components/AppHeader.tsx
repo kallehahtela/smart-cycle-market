@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native'
+import { View, Platform, StyleSheet, Pressable } from 'react-native'
 import React, { FC } from 'react'
 import size from '@utils/size';
 import { useNavigation } from '@react-navigation/native';
@@ -35,7 +35,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: size.padding,
-    }
+        paddingVertical: Platform.OS === 'android' ? 45 : 15,
+    },
 });
 
 export default AppHeader

@@ -47,7 +47,7 @@ const ForgetPassword: FC<Props> = (props) => {
               value={email} 
               onChangeText={text => setEmail(text)}/>
 
-            <AppButton active={!busy} title={busy ? 'Please Wait...' : 'Request Link'} onPress={handleSubmit}/>
+            <AppButton active={busy} title={busy ? 'Please Wait...' : 'Request Link'} onPress={handleSubmit}/>
 
             <FormDivider />
             <FormNavigator 

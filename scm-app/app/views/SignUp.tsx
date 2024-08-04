@@ -60,7 +60,7 @@ const SignUp: FC<Props> = () => {
             <FormInput placeholder='Email' value={email} keyboardType='email-address' autoCapitalize='none' onChangeText={handleChange('email')} />
             <FormInput placeholder='Password' value={password} secureTextEntry={true} onChangeText={handleChange('password')} />
 
-            <AppButton active={!busy} title='Sign Up' onPress={handleSubmit}/>
+            <AppButton active={busy} title='Sign Up' onPress={handleSubmit}/>
 
             <FormDivider />
             <FormNavigator 

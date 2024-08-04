@@ -54,7 +54,7 @@ const SignIn: FC<Props> = (props) => {
             <FormInput placeholder='Email' keyboardType='email-address' autoCapitalize='none' value={email} onChangeText={handleChange('email')}/>
             <FormInput placeholder='Password' secureTextEntry={true} value={password} onChangeText={handleChange('password')}/>
 
-            <AppButton active={true} title='Sign In' onPress={handleSubmit}/>
+            <AppButton title='Sign In' onPress={handleSubmit}/>
 
             <FormDivider />
             <FormNavigator 

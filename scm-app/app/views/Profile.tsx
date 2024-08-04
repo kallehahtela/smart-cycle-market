@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Platform, RefreshControl } from 'react-native'
 import React, { FC, useState } from 'react'
 import AvatarView from './AvatarView';
 import useAuth from 'app/hooks/useAuth';
@@ -15,6 +15,9 @@ import { ProfileRes } from 'app/navigator';
 import { useDispatch } from 'react-redux';
 import { updateAuthState } from 'app/store/auth';
 import { showMessage } from 'react-native-flash-message';
+import { selectImages } from '@utils/helper';
+import mime from 'mime';
+import LoadingSpinner from '@ui/LoadingSpinner';
 
 interface Props {}
 
@@ -23,6 +26,9 @@ const Profile: FC<Props> = (props) => {
   const { authState, signOut } = useAuth();
   const { profile } = authState;
   const [userName, setUserName] = useState(profile?.name || '');
+  const [busy, setBusy] = useState(false);
+  const [updatingAvatar, setUpdatingAvatar] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { authClient } = useClient();
   const dispatch = useDispatch();
 
@@ -34,6 +40,61 @@ const Profile: FC<Props> = (props) => {
 
   const onListingPress = () => {
     navigate('Listings');
+  };
+
+  const fetchProfile = async () => {
+    setRefreshing(true);
+    const res = await runAxiosAsync<{ profile: ProfileRes }>(
+      authClient.get('/auth/profile')
+    );
+    setRefreshing(false);
+    if (res) {
+      dispatch(
+        updateAuthState({
+          profile: {...profile!, ...res.profile},
+           pending: false
+          })
+        );
+    }
+  };
+
+  const getVerificvationLink = async () => {
+    setBusy(true);
+    const res = await runAxiosAsync<{ message: string }>(
+      authClient.get('/auth/verify-token')
+    );
+
+    setBusy(false);
+    if (res) {
+      showMessage({ message: res.message, type: 'success' });
+    }
+  };
+
+  const handleProfileImageSelection = async () => {
+    const [image] = await selectImages({
+      allowsMultipleSelection: false, 
+      allowsEditing: true, 
+      aspect: [1, 1]
+    });
+    
+    if (image) {
+      const formData = new FormData();
+      formData.append('avatar', {
+        name: 'Avatar',
+        uri: image,
+        type: mime.getType(image),
+      } as any);
+
+      setUpdatingAvatar(true);
+      const res = await runAxiosAsync<ProfileRes>(authClient.patch('/auth/update-avatar', formData));
+      setUpdatingAvatar(false);
+      if (res) {
+        dispatch(updateAuthState({ 
+          profile: {...profile!, ...res.profile }, 
+          pending: false, })
+        );
+      }
+    }
   };
 
   const updateProfile = async () => {
@@ -50,9 +111,28 @@ const Profile: FC<Props> = (props) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchProfile} />} contentContainerStyle={styles.container}>
+      {!profile?.verified && (
+        <View 
+          style={styles.verificationLinkContainer}
+        >
+        <Text 
+          style={styles.verificationTitle}>
+            It looks like your profile is not verified.
+        </Text>
+        { busy ? (<Text style={styles.verificationLink}>Please Wait...</Text> 
+        ) : (<Text 
+          onPress={getVerificvationLink} 
+          style={styles.verificationLink}>
+            Tap here to get the link.
+        </Text>
+      )}
+      </View>
+    )}
+
+      {/* Profile image and profile info */}
       <View style={styles.profileContainer}>
-        <AvatarView uri={authState.profile?.avatar} size={80} />
+        <AvatarView uri={authState.profile?.avatar} size={80} onPress={handleProfileImageSelection} />
 
         <View style={styles.profileInfo}>
           <View style={styles.nameContainer}>
@@ -98,11 +178,32 @@ const Profile: FC<Props> = (props) => {
         title='Log out'
         onPress={signOut}
       />
+
+      <LoadingSpinner visible={updatingAvatar} />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  verificationLinkContainer: {
+    marginTop: Platform.OS === 'ios' ? 10 : 35,
+    marginBottom: Platform.OS === 'ios' ? 10 : 0,
+    backgroundColor: colors.deActive,
+    marginVertical: 10,
+    padding: 10,
+    borderRadius: 5,
+  },
+  verificationTitle: {
+    fontWeight: '600',
+    color: colors.primary,
+    textAlign: 'center',
+  },
+  verificationLink: {
+    fontWeight: '600',
+    color: colors.active,
+    textAlign: 'center',
+    paddingTop: 5,
+  },
   container: {
     padding: size.padding,
   },

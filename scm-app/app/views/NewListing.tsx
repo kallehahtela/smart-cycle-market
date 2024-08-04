@@ -5,8 +5,6 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import colors from '@utils/colors';
 import DatePicker from '@ui/DatePicker';
 import OptionModal from '@components/OptionModal';
-import categories from '@utils/categories';
-import CategoryOption from '@ui/CategoryOption';
 import { AntDesign } from '@expo/vector-icons';
 import AppButton from '@ui/AppButton';
 import CustomKeyAvoidingView from '@ui/CustomKeyAvoidingView';
@@ -37,7 +35,6 @@ const NewListing: FC<Props> = (props) => {
 
     const [productInfo, setProductInfo] = useState({...defaultInfo});
     const [busy, setBusy] = useState(false);
-    const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [showImageOptions, setShowImageOptions] = useState(false);
     const [images, setImages] = useState<string[]>([]);
     const [selectedImage, setSelectedImage] = useState('');
@@ -124,13 +121,6 @@ const NewListing: FC<Props> = (props) => {
                             }}
                         />
 
-                        {/*<FlatList data={images} renderItem={({item}) => {
-                            return <Image style={styles.selectedImages} source={{uri: item}}/>
-                        }}
-                        keyExtractor={(item) => item}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        />*/}
                     </View>
 
                     <FormInput 
@@ -161,7 +151,7 @@ const NewListing: FC<Props> = (props) => {
 
                     <FormInput value={description} placeholder='Description'multiline numberOfLines={4} onChangeText={handleChange('description')} />
 
-                    <AppButton active title='List Product' onPress={handleSubmit}/>
+                    <AppButton title='List Product' onPress={handleSubmit}/>
 
                     { /* Image Options */ }
                     <OptionModal
@@ -180,23 +170,10 @@ const NewListing: FC<Props> = (props) => {
                             }
                         }}
                     />
-                    {/*<OptionModal
-                        visible={showCategoryModal} 
-                        onRequestClose={setShowCategoryModal} 
-                        options={categories}
-                        renderItem={(item) => {
-                            return (
-                                <CategoryOption {...item} />
-                            );
-                        }}
-                        onPress={(item) => {
-                            setProductInfo({...productInfo, category: item.name})
-                        }}
-                    />*/}
                 </View>
                 <LoadingSpinner visible={busy}/>
             </CustomKeyAvoidingView>
-    )
+        )
     };
 
 const styles = StyleSheet.create({
