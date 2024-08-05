@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Pressable, Alert } from 'react-native'
-import React, { FC, useState } from 'react'
+import React, { FC, useEffect, useState } from 'react'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ProfileNavigatorParamList } from 'app/navigator/ProfileNavigator';
 import AppHeader from '@components/AppHeader';
@@ -15,7 +15,7 @@ import { runAxiosAsync } from 'app/api/runAxiosAsync';
 import { showMessage } from 'react-native-flash-message';
 import LoadingSpinner from '@ui/LoadingSpinner';
 import { useDispatch } from 'react-redux';
-import { deleteItem } from 'app/store/listings';
+import { deleteItem, Product } from 'app/store/listings';
 
 type Props = NativeStackScreenProps<ProfileNavigatorParamList, 'SingleProduct'>
 
@@ -33,9 +33,10 @@ const menuOptions = [
 const SingleProduct: FC<Props> = ({ route, navigation }) => {
     const [showMenu, setShowMenu] = useState(false);
     const [busy, setBusy] = useState(false);
+    const [productInfo, setProductInfo] = useState<Product>();
     const {authState} = useAuth();
     const { authClient } = useClient();
-    const { product } = route.params;
+    const { product, id } = route.params;
     const dispatch = useDispatch();
 
     const isAdmin = authState.profile?.id === product?.seller.id;
@@ -66,6 +67,19 @@ const SingleProduct: FC<Props> = ({ route, navigation }) => {
         );
     };
 
+    const fetchProductInfo = async (id: string) => {
+        const res = await runAxiosAsync<{product: Product}>(authClient.get('/product/detail/'+ id));
+        if (res) {
+            setProductInfo(res.product);
+        }
+    };
+
+    useEffect(() => {
+        if (id) fetchProductInfo(id);
+        
+        if (product) setProductInfo(product);
+    }, [id, product]);
+
     return (
         <>
             <AppHeader 
@@ -73,7 +87,7 @@ const SingleProduct: FC<Props> = ({ route, navigation }) => {
                 right={<OptionButton visible={isAdmin} onPress={() => setShowMenu(true)} />}
             />
             <View style={styles.container}>
-                {product ? <ProductDetail product={product} /> : <></>}
+                {productInfo ? <ProductDetail product={productInfo} /> : <></>}
                 <Pressable onPress={() => navigation.navigate('ChatWindow')} style={styles.messageBtn}>
                     <AntDesign name='message1' size={20} color={colors.white} />
                 </Pressable>

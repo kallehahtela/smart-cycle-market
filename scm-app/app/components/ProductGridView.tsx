@@ -4,6 +4,7 @@ import { LatestProduct } from './LatestProductList';
 import GridView from '@ui/GridView';
 import { formatPrice } from '@utils/helper';
 import colors from '@utils/colors';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface Props {
     data: LatestProduct[];
@@ -13,7 +14,6 @@ interface Props {
 const ProductGridView: FC<Props> = ({ data, onPress }) => {
   return (
     <GridView
-
         data={data}
         renderItem={(item) => {
             return (
@@ -21,7 +21,13 @@ const ProductGridView: FC<Props> = ({ data, onPress }) => {
                 onPress={() => onPress(item)} 
                 style={styles.productContainer}
             >
-                <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
+                {item.thumbnail ? (
+                    <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
+                ) : (
+                <View style={[styles.thumbnail, styles.noImage]}>
+                    <MaterialCommunityIcons name='image-off' size={35} color={colors.primary} />
+                </View>
+                )}
                 <Text style={styles.price}>{formatPrice(item.price)}</Text>
                 <Text style={styles.name}>{item.name}</Text>
             </Pressable>
@@ -50,6 +56,11 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: colors.active,
         paddingTop: 5,
+    },
+    noImage: {
+        backgroundColor: colors.deActive,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });
 

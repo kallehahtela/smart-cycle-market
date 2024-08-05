@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import React, { FC } from 'react'
-import { Product } from '@views/SingleProduct';
 import { formatDate } from '@utils/date';
 import size from '@utils/size';
 import AvatarView from '@views/AvatarView';
 import colors from '@utils/colors';
 import { formatPrice } from '@utils/helper';
 import ImageSlider from './ImageSlider';
+import { Product } from 'app/store/listings';
 
 interface Props {
     product: Product;

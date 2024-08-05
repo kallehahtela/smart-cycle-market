@@ -13,9 +13,9 @@ export type ProfileNavigatorParamList = {
   Profile: undefined;
   Chats: undefined;
   Listings: undefined;
-  SingleProduct: {product?: Product}
-  EditProduct: {product: Product}
-  ChatWindow: undefined
+  SingleProduct: {product?: Product, id?: string};
+  EditProduct: {product: Product};
+  ChatWindow: undefined;
 };
 
 const Stack = createNativeStackNavigator<ProfileNavigatorParamList>();
